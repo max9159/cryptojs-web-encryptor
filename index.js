@@ -20,6 +20,12 @@ class App extends Component {
       kvDecryptKey: '',
       kvDecryptedOutput: '',
       darkMode: false,
+      copied: {
+        encIn: false,
+        decOut: false,
+        jsonOut: false,
+        kvOut: false,
+      },
     };
   }
 
@@ -166,6 +172,47 @@ class App extends Component {
     this.setState({ kvDecryptedOutput: decryptedLines.join('\n') });
   };
 
+  setCopyFeedback = (key) => {
+    this.setState({ copied: { ...this.state.copied, [key]: true } });
+    setTimeout(() => {
+      this.setState({ copied: { ...this.state.copied, [key]: false } });
+    }, 1200);
+  };
+
+  copyToClipboard = (text, key) => {
+    if (!text) return;
+    const doSet = () => this.setCopyFeedback(key);
+    if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(doSet).catch(() => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.top = '-1000px';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          doSet();
+        } catch (e) {}
+      });
+    } else {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        doSet();
+      } catch (e) {}
+    }
+  };
+
   toggleDarkMode = () => {
     this.setState({ darkMode: !this.state.darkMode });
   };
@@ -173,92 +220,149 @@ class App extends Component {
   render() {
     return (
       <div className={this.state.darkMode ? 'dark-mode' : 'light-mode'}>
-        {/* <button onClick={this.toggleDarkMode} style={{ marginBottom: 20 }}>
-          Toggle Dark Mode
-        </button> */}
-        <h1>Crypto-JS encryptAES</h1>
-        <div className="form-group">
-          <input
-            className="form-control"
-            value={this.state.inputText}
-            onChange={this.handleInputTextChange}
-            style={{ width: '40%', height: 40, marginRight: 20 }}
-            placeholder="Input Text"
-          />
-          <input
-            className="form-control"
-            value={this.state.inputKey}
-            onChange={this.handleInputKeyChange}
-            style={{ width: '40%', height: 40 }}
-            placeholder="Key"
-          />
+        {/* Encrypt section */}
+        <div className="card">
+          <h1>Crypto-JS encryptAES</h1>
+          <div className="form-group">
+            <input
+              className="form-control"
+              value={this.state.inputText}
+              onChange={this.handleInputTextChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Input Text"
+            />
+            <input
+              className="form-control"
+              value={this.state.inputKey}
+              onChange={this.handleInputKeyChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Key"
+            />
+          </div>
+          <div className="output-card">
+            <button
+              className="copy-btn"
+              aria-label="Copy encrypted output"
+              onClick={() => this.copyToClipboard(this.state.encryptedBase64Input, 'encIn')}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+            </button>
+            <div className={"copy-feedback" + (this.state.copied.encIn ? " show" : "")}>Copied</div>
+            <pre className="output">
+              <code>{this.state.encryptedBase64Input}</code>
+            </pre>
+          </div>
         </div>
-        <pre className="output">
-          <code>{this.state.encryptedBase64Input}</code>
-        </pre>
 
-        <h1>Crypto-JS decryptAES</h1>
-        <div className="form-group">
-          <input
-            className="form-control"
-            value={this.state.encryptedBase64}
-            onChange={this.handleMsgChange}
-            style={{ width: '40%', height: 40, marginRight: 20 }}
-            placeholder="Encrypted String"
-          />
-          <input
-            className="form-control"
-            value={this.state.decryptKey}
-            onChange={this.handleDecryptKeyChange}
-            style={{ width: '40%', height: 40 }}
-            placeholder="Key"
-          />
+        {/* Decrypt section */}
+        <div className="card">
+          <h1>Crypto-JS decryptAES</h1>
+          <div className="form-group">
+            <input
+              className="form-control"
+              value={this.state.encryptedBase64}
+              onChange={this.handleMsgChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Encrypted String"
+            />
+            <input
+              className="form-control"
+              value={this.state.decryptKey}
+              onChange={this.handleDecryptKeyChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Key"
+            />
+          </div>
+          <div className="output-card">
+            <button
+              className="copy-btn"
+              aria-label="Copy decrypted output"
+              onClick={() => this.copyToClipboard(this.state.decryptedText, 'decOut')}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+            </button>
+            <div className={"copy-feedback" + (this.state.copied.decOut ? " show" : "")}>Copied</div>
+            <pre className="output">
+              <code>{this.state.decryptedText}</code>
+            </pre>
+          </div>
         </div>
-        <pre className="output">
-          <code>{this.state.decryptedText}</code>
-        </pre>
 
-        <h1>Decrypt JSON</h1>
-        <div className="form-group">
-          <input
-            className="form-control"
-            value={this.state.jsonDecryptKey}
-            onChange={this.handleJsonDecryptKeyChange}
-            style={{ width: '40%', height: 40, marginTop: 10 }}
-            placeholder="Decryption Key"
-          />
-          <textarea
-            className="form-control"
-            value={this.state.jsonInput}
-            onChange={this.handleJsonInputChange}
-            style={{ width: '80%', height: 100 }}
-            placeholder="Paste Encrypted JSON Here"
-          />
+        {/* Decrypt JSON section */}
+        <div className="card">
+          <h1>Decrypt JSON</h1>
+          <div className="form-group">
+            <input
+              className="form-control"
+              value={this.state.jsonDecryptKey}
+              onChange={this.handleJsonDecryptKeyChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Decryption Key"
+            />
+            <textarea
+              className="form-control"
+              value={this.state.jsonInput}
+              onChange={this.handleJsonInputChange}
+              style={{ width: '80%', height: 100 }}
+              placeholder="Paste Encrypted JSON Here"
+            />
+          </div>
+          <div className="output-card">
+            <button
+              className="copy-btn"
+              aria-label="Copy JSON output"
+              onClick={() => this.copyToClipboard(this.state.decryptedJson, 'jsonOut')}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+            </button>
+            <div className={"copy-feedback" + (this.state.copied.jsonOut ? " show" : "")}>Copied</div>
+            <pre className="output">
+              <code>{this.state.decryptedJson}</code>
+            </pre>
+          </div>
         </div>
-        <pre className="output">
-          <code>{this.state.decryptedJson}</code>
-        </pre>
 
-        <h1>Decrypt key-value Content</h1>
-        <div className="form-group">
-          <input
-            className="form-control"
-            value={this.state.kvDecryptKey}
-            onChange={this.handleKvKeyChange}
-            style={{ width: '40%', height: 40, marginTop: 10 }}
-            placeholder="Decryption Key"
-          />
-          <textarea
-            className="form-control"
-            value={this.state.kvContentInput}
-            onChange={this.handleKvContentChange}
-            style={{ width: '80%', height: 120 }}
-            placeholder="Paste key=value lines here"
-          />
+        {/* Decrypt key-value Content section */}
+        <div className="card">
+          <h1>Decrypt key-value Content</h1>
+          <div className="form-group">
+            <input
+              className="form-control"
+              value={this.state.kvDecryptKey}
+              onChange={this.handleKvKeyChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Decryption Key"
+            />
+            <textarea
+              className="form-control"
+              value={this.state.kvContentInput}
+              onChange={this.handleKvContentChange}
+              style={{ width: '80%', height: 120 }}
+              placeholder="Paste key=value lines here"
+            />
+          </div>
+          <div className="output-card">
+            <button
+              className="copy-btn"
+              aria-label="Copy key-value output"
+              onClick={() => this.copyToClipboard(this.state.kvDecryptedOutput, 'kvOut')}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+            </button>
+            <div className={"copy-feedback" + (this.state.copied.kvOut ? " show" : "")}>Copied</div>
+            <pre className="output">
+              <code>{this.state.kvDecryptedOutput}</code>
+            </pre>
+          </div>
         </div>
-        <pre className="output">
-          <code>{this.state.kvDecryptedOutput}</code>
-        </pre>
       </div>
     );
   }
