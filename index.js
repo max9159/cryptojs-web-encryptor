@@ -19,12 +19,16 @@ class App extends Component {
       kvContentInput: '',
       kvDecryptKey: '',
       kvDecryptedOutput: '',
+      kvPlainInput: '',
+      kvEncryptKey: '',
+      kvEncryptedOutput: '',
       darkMode: false,
       copied: {
         encIn: false,
         decOut: false,
         jsonOut: false,
         kvOut: false,
+        kvEncOut: false,
       },
     };
   }
@@ -118,6 +122,71 @@ class App extends Component {
     } catch (e) {
       this.setState({ decryptedJson: 'Invalid JSON format' });
     }
+  };
+
+  handleKvEncKeyChange = (event) => {
+    this.setState(
+      { kvEncryptKey: event.target.value },
+      this.encryptKeyValueContent
+    );
+  };
+
+  handleKvPlainChange = (event) => {
+    this.setState(
+      { kvPlainInput: event.target.value },
+      this.encryptKeyValueContent
+    );
+  };
+
+  encryptKeyValueContent = () => {
+    const content = this.state.kvPlainInput || '';
+    const key = this.state.kvEncryptKey || '';
+    if (!content) {
+      this.setState({ kvEncryptedOutput: '' });
+      return;
+    }
+    const lines = content.split(/\r?\n/);
+    const encryptedLines = lines.map((line) => {
+      if (!line.includes('=')) return line;
+      const idx = line.indexOf('=');
+      const left = line.slice(0, idx);
+      const right = line.slice(idx + 1);
+
+      // Preserve surrounding quotes if present
+      const trimmed = right.trim();
+      const hasDoubleQuotes =
+        trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2;
+      const hasSingleQuotes =
+        trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length >= 2;
+
+      const unwrap = (s) => s.substring(1, s.length - 1);
+      const rewrap = (s, quote) => `${quote}${s}${quote}`;
+
+      const originalRight = right;
+      let valueToEncrypt = trimmed;
+      let quoteChar = '';
+      if (hasDoubleQuotes) {
+        valueToEncrypt = unwrap(trimmed);
+        quoteChar = '"';
+      } else if (hasSingleQuotes) {
+        valueToEncrypt = unwrap(trimmed);
+        quoteChar = "'";
+      }
+
+      if (!key) {
+        return `${left}=${originalRight}`;
+      }
+
+      const encrypted = this.encryptAES(valueToEncrypt, key);
+      const newRight = quoteChar ? rewrap(encrypted, quoteChar) : encrypted;
+      // Keep original spacing around '=' by replacing trimmed portion only
+      const start = right.indexOf(trimmed);
+      const end = start + trimmed.length;
+      const reconstructedRight =
+        right.slice(0, start) + newRight + right.slice(end);
+      return `${left}=${reconstructedRight}`;
+    });
+    this.setState({ kvEncryptedOutput: encryptedLines.join('\n') });
   };
 
   handleKvKeyChange = (event) => {
@@ -386,47 +455,92 @@ class App extends Component {
           </div>
         </div>
 
-        {/* Decrypt key-value Content section */}
-        <div className="card">
-          <h1>Decrypt key-value Content</h1>
-          <div className="form-group">
-            <input
-              className="form-control"
-              value={this.state.kvDecryptKey}
-              onChange={this.handleKvKeyChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Decryption Key"
-            />
-            <textarea
-              className="form-control"
-              value={this.state.kvContentInput}
-              onChange={this.handleKvContentChange}
-              style={{ width: '80%', height: 120 }}
-              placeholder="Paste key=value lines here"
-            />
-          </div>
-          <div className="output-card">
-            <button
-              className="copy-btn"
-              aria-label="Copy key-value output"
-              onClick={() =>
-                this.copyToClipboard(this.state.kvDecryptedOutput, 'kvOut')
-              }
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
-              </svg>
-            </button>
-            <div
-              className={
-                'copy-feedback' + (this.state.copied.kvOut ? ' show' : '')
-              }
-            >
-              Copied
+        {/* Encrypt/Decrypt key-value Content section */}
+        <div className="grid-2">
+          <div className="card">
+            <h1>Encrypt key-value Content</h1>
+            <div className="form-group">
+              <input
+                className="form-control"
+                value={this.state.kvEncryptKey}
+                onChange={this.handleKvEncKeyChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Encryption Key"
+              />
+              <textarea
+                className="form-control"
+                value={this.state.kvPlainInput}
+                onChange={this.handleKvPlainChange}
+                style={{ width: '80%', height: 120 }}
+                placeholder="Paste key=value lines here"
+              />
             </div>
-            <pre className="output">
-              <code>{this.state.kvDecryptedOutput}</code>
-            </pre>
+            <div className="output-card">
+              <button
+                className="copy-btn"
+                aria-label="Copy key-value encrypted output"
+                onClick={() =>
+                  this.copyToClipboard(this.state.kvEncryptedOutput, 'kvEncOut')
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+              <div
+                className={
+                  'copy-feedback' + (this.state.copied.kvEncOut ? ' show' : '')
+                }
+              >
+                Copied
+              </div>
+              <pre className="output">
+                <code>{this.state.kvEncryptedOutput}</code>
+              </pre>
+            </div>
+          </div>
+
+          <div className="card">
+            <h1>Decrypt key-value Content</h1>
+            <div className="form-group">
+              <input
+                className="form-control"
+                value={this.state.kvDecryptKey}
+                onChange={this.handleKvKeyChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Decryption Key"
+              />
+              <textarea
+                className="form-control"
+                value={this.state.kvContentInput}
+                onChange={this.handleKvContentChange}
+                style={{ width: '80%', height: 120 }}
+                placeholder="Paste key=value lines here"
+              />
+            </div>
+            <div className="output-card">
+              <button
+                className="copy-btn"
+                aria-label="Copy key-value output"
+                onClick={() =>
+                  this.copyToClipboard(this.state.kvDecryptedOutput, 'kvOut')
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+              <div
+                className={
+                  'copy-feedback' + (this.state.copied.kvOut ? ' show' : '')
+                }
+              >
+                Copied
+              </div>
+              <pre className="output">
+                <code>{this.state.kvDecryptedOutput}</code>
+              </pre>
+            </div>
           </div>
         </div>
       </div>
