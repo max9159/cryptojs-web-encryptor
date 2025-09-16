@@ -16,6 +16,9 @@ class App extends Component {
       jsonInput: '',
       decryptedJson: '',
       jsonDecryptKey: '',
+      kvContentInput: '',
+      kvDecryptKey: '',
+      kvDecryptedOutput: '',
       darkMode: false,
     };
   }
@@ -107,6 +110,62 @@ class App extends Component {
     }
   };
 
+  handleKvKeyChange = (event) => {
+    this.setState({ kvDecryptKey: event.target.value }, this.decryptKeyValueContent);
+  };
+
+  handleKvContentChange = (event) => {
+    this.setState({ kvContentInput: event.target.value }, this.decryptKeyValueContent);
+  };
+
+  decryptKeyValueContent = () => {
+    const content = this.state.kvContentInput || '';
+    const key = this.state.kvDecryptKey || '';
+    if (!content) {
+      this.setState({ kvDecryptedOutput: '' });
+      return;
+    }
+    const lines = content.split(/\r?\n/);
+    const decryptedLines = lines.map((line) => {
+      if (!line.includes('=')) return line;
+      const idx = line.indexOf('=');
+      const left = line.slice(0, idx);
+      const right = line.slice(idx + 1);
+
+      // Preserve surrounding quotes if present
+      const trimmed = right.trim();
+      const hasDoubleQuotes = trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2;
+      const hasSingleQuotes = trimmed.startsWith('\'') && trimmed.endsWith('\'') && trimmed.length >= 2;
+
+      const unwrap = (s) => s.substring(1, s.length - 1);
+      const rewrap = (s, quote) => `${quote}${s}${quote}`;
+
+      const originalRight = right;
+      let valueToTry = trimmed;
+      let quoteChar = '';
+      if (hasDoubleQuotes) {
+        valueToTry = unwrap(trimmed);
+        quoteChar = '"';
+      } else if (hasSingleQuotes) {
+        valueToTry = unwrap(trimmed);
+        quoteChar = '\'';
+      }
+
+      const attempt = key ? this.decryptAES(valueToTry, key) : 'Decryption error';
+      if (attempt && attempt !== 'Decryption error') {
+        const newRight = quoteChar ? rewrap(attempt, quoteChar) : attempt;
+        // Keep original spacing around '=' by replacing trimmed portion only
+        const start = right.indexOf(trimmed);
+        const end = start + trimmed.length;
+        const reconstructedRight = right.slice(0, start) + newRight + right.slice(end);
+        return `${left}=${reconstructedRight}`;
+      }
+
+      return `${left}=${originalRight}`;
+    });
+    this.setState({ kvDecryptedOutput: decryptedLines.join('\n') });
+  };
+
   toggleDarkMode = () => {
     this.setState({ darkMode: !this.state.darkMode });
   };
@@ -178,6 +237,27 @@ class App extends Component {
         </div>
         <pre className="output">
           <code>{this.state.decryptedJson}</code>
+        </pre>
+
+        <h1>Decrypt key-value Content</h1>
+        <div className="form-group">
+          <input
+            className="form-control"
+            value={this.state.kvDecryptKey}
+            onChange={this.handleKvKeyChange}
+            style={{ width: '40%', height: 40, marginTop: 10 }}
+            placeholder="Decryption Key"
+          />
+          <textarea
+            className="form-control"
+            value={this.state.kvContentInput}
+            onChange={this.handleKvContentChange}
+            style={{ width: '80%', height: 120 }}
+            placeholder="Paste key=value lines here"
+          />
+        </div>
+        <pre className="output">
+          <code>{this.state.kvDecryptedOutput}</code>
         </pre>
       </div>
     );
