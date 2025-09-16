@@ -17,6 +17,75 @@ h1, p {
   padding: 24px;
 }
 
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle .label {
+  font-size: 14px;
+  color: inherit;
+}
+
+.switch-input {
+  position: absolute;
+  left: -9999px;
+}
+
+.switch {
+  width: 46px;
+  height: 28px;
+  background: rgba(17, 24, 39, 0.3);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch-input:checked + .switch {
+  background: #4f46e5;
+  border-color: transparent;
+}
+
+.switch-input:checked + .switch::after {
+  transform: translateX(18px);
+}
+
+.dark-mode .switch {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 /* Container and sections */
 .card {
   background: #ffffff;
@@ -37,6 +106,21 @@ h1, p {
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 12px 0;
+}
+
+/* Two column grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Forms */

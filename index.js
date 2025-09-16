@@ -29,6 +29,10 @@ class App extends Component {
     };
   }
 
+  componentDidMount() {
+    document.title = 'CryptoJS Web Encryptor';
+  }
+
   encryptAES = (text, key) => {
     return CryptoJS.AES.encrypt(text, key).toString();
   };
@@ -117,11 +121,17 @@ class App extends Component {
   };
 
   handleKvKeyChange = (event) => {
-    this.setState({ kvDecryptKey: event.target.value }, this.decryptKeyValueContent);
+    this.setState(
+      { kvDecryptKey: event.target.value },
+      this.decryptKeyValueContent
+    );
   };
 
   handleKvContentChange = (event) => {
-    this.setState({ kvContentInput: event.target.value }, this.decryptKeyValueContent);
+    this.setState(
+      { kvContentInput: event.target.value },
+      this.decryptKeyValueContent
+    );
   };
 
   decryptKeyValueContent = () => {
@@ -140,8 +150,10 @@ class App extends Component {
 
       // Preserve surrounding quotes if present
       const trimmed = right.trim();
-      const hasDoubleQuotes = trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2;
-      const hasSingleQuotes = trimmed.startsWith('\'') && trimmed.endsWith('\'') && trimmed.length >= 2;
+      const hasDoubleQuotes =
+        trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2;
+      const hasSingleQuotes =
+        trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length >= 2;
 
       const unwrap = (s) => s.substring(1, s.length - 1);
       const rewrap = (s, quote) => `${quote}${s}${quote}`;
@@ -154,16 +166,19 @@ class App extends Component {
         quoteChar = '"';
       } else if (hasSingleQuotes) {
         valueToTry = unwrap(trimmed);
-        quoteChar = '\'';
+        quoteChar = "'";
       }
 
-      const attempt = key ? this.decryptAES(valueToTry, key) : 'Decryption error';
+      const attempt = key
+        ? this.decryptAES(valueToTry, key)
+        : 'Decryption error';
       if (attempt && attempt !== 'Decryption error') {
         const newRight = quoteChar ? rewrap(attempt, quoteChar) : attempt;
         // Keep original spacing around '=' by replacing trimmed portion only
         const start = right.indexOf(trimmed);
         const end = start + trimmed.length;
-        const reconstructedRight = right.slice(0, start) + newRight + right.slice(end);
+        const reconstructedRight =
+          right.slice(0, start) + newRight + right.slice(end);
         return `${left}=${reconstructedRight}`;
       }
 
@@ -183,20 +198,23 @@ class App extends Component {
     if (!text) return;
     const doSet = () => this.setCopyFeedback(key);
     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(doSet).catch(() => {
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.top = '-1000px';
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          doSet();
-        } catch (e) {}
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(doSet)
+        .catch(() => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            doSet();
+          } catch (e) { }
+        });
     } else {
       try {
         const ta = document.createElement('textarea');
@@ -209,7 +227,7 @@ class App extends Component {
         document.execCommand('copy');
         document.body.removeChild(ta);
         doSet();
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 
@@ -220,75 +238,107 @@ class App extends Component {
   render() {
     return (
       <div className={this.state.darkMode ? 'dark-mode' : 'light-mode'}>
-        {/* Encrypt section */}
-        <div className="card">
-          <h1>Crypto-JS encryptAES</h1>
-          <div className="form-group">
+        <div className="app-header">
+          <h2 className="page-title">CryptoJS Web Encryptor</h2>
+          <label className="theme-toggle">
+            <span className="label">Dark mode</span>
             <input
-              className="form-control"
-              value={this.state.inputText}
-              onChange={this.handleInputTextChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Input Text"
+              type="checkbox"
+              className="switch-input"
+              checked={this.state.darkMode}
+              onChange={this.toggleDarkMode}
             />
-            <input
-              className="form-control"
-              value={this.state.inputKey}
-              onChange={this.handleInputKeyChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Key"
-            />
-          </div>
-          <div className="output-card">
-            <button
-              className="copy-btn"
-              aria-label="Copy encrypted output"
-              onClick={() => this.copyToClipboard(this.state.encryptedBase64Input, 'encIn')}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-              </svg>
-            </button>
-            <div className={"copy-feedback" + (this.state.copied.encIn ? " show" : "")}>Copied</div>
-            <pre className="output">
-              <code>{this.state.encryptedBase64Input}</code>
-            </pre>
-          </div>
+            <span className="switch" aria-hidden="true"></span>
+          </label>
         </div>
 
-        {/* Decrypt section */}
-        <div className="card">
-          <h1>Crypto-JS decryptAES</h1>
-          <div className="form-group">
-            <input
-              className="form-control"
-              value={this.state.encryptedBase64}
-              onChange={this.handleMsgChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Encrypted String"
-            />
-            <input
-              className="form-control"
-              value={this.state.decryptKey}
-              onChange={this.handleDecryptKeyChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Key"
-            />
+        <div className="grid-2">
+          {/* Encrypt section */}
+          <div className="card">
+            <h1>Encrypt Single String</h1>
+            <div className="form-group">
+              <input
+                className="form-control"
+                value={this.state.inputText}
+                onChange={this.handleInputTextChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Input Text"
+              />
+              <input
+                className="form-control"
+                value={this.state.inputKey}
+                onChange={this.handleInputKeyChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Key"
+              />
+            </div>
+            <div className="output-card">
+              <button
+                className="copy-btn"
+                aria-label="Copy encrypted output"
+                onClick={() =>
+                  this.copyToClipboard(this.state.encryptedBase64Input, 'encIn')
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+              <div
+                className={
+                  'copy-feedback' + (this.state.copied.encIn ? ' show' : '')
+                }
+              >
+                Copied
+              </div>
+              <pre className="output">
+                <code>{this.state.encryptedBase64Input}</code>
+              </pre>
+            </div>
           </div>
-          <div className="output-card">
-            <button
-              className="copy-btn"
-              aria-label="Copy decrypted output"
-              onClick={() => this.copyToClipboard(this.state.decryptedText, 'decOut')}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-              </svg>
-            </button>
-            <div className={"copy-feedback" + (this.state.copied.decOut ? " show" : "")}>Copied</div>
-            <pre className="output">
-              <code>{this.state.decryptedText}</code>
-            </pre>
+
+          {/* Decrypt section */}
+          <div className="card">
+            <h1>Decrypt Single String</h1>
+            <div className="form-group">
+              <input
+                className="form-control"
+                value={this.state.encryptedBase64}
+                onChange={this.handleMsgChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Encrypted String"
+              />
+              <input
+                className="form-control"
+                value={this.state.decryptKey}
+                onChange={this.handleDecryptKeyChange}
+                style={{ width: '40%', height: 40 }}
+                placeholder="Key"
+              />
+            </div>
+            <div className="output-card">
+              <button
+                className="copy-btn"
+                aria-label="Copy decrypted output"
+                onClick={() =>
+                  this.copyToClipboard(this.state.decryptedText, 'decOut')
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+              <div
+                className={
+                  'copy-feedback' + (this.state.copied.decOut ? ' show' : '')
+                }
+              >
+                Copied
+              </div>
+              <pre className="output">
+                <code>{this.state.decryptedText}</code>
+              </pre>
+            </div>
           </div>
         </div>
 
@@ -315,13 +365,21 @@ class App extends Component {
             <button
               className="copy-btn"
               aria-label="Copy JSON output"
-              onClick={() => this.copyToClipboard(this.state.decryptedJson, 'jsonOut')}
+              onClick={() =>
+                this.copyToClipboard(this.state.decryptedJson, 'jsonOut')
+              }
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
               </svg>
             </button>
-            <div className={"copy-feedback" + (this.state.copied.jsonOut ? " show" : "")}>Copied</div>
+            <div
+              className={
+                'copy-feedback' + (this.state.copied.jsonOut ? ' show' : '')
+              }
+            >
+              Copied
+            </div>
             <pre className="output">
               <code>{this.state.decryptedJson}</code>
             </pre>
@@ -351,13 +409,21 @@ class App extends Component {
             <button
               className="copy-btn"
               aria-label="Copy key-value output"
-              onClick={() => this.copyToClipboard(this.state.kvDecryptedOutput, 'kvOut')}
+              onClick={() =>
+                this.copyToClipboard(this.state.kvDecryptedOutput, 'kvOut')
+              }
             >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
               </svg>
             </button>
-            <div className={"copy-feedback" + (this.state.copied.kvOut ? " show" : "")}>Copied</div>
+            <div
+              className={
+                'copy-feedback' + (this.state.copied.kvOut ? ' show' : '')
+              }
+            >
+              Copied
+            </div>
             <pre className="output">
               <code>{this.state.kvDecryptedOutput}</code>
             </pre>
