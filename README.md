@@ -3,7 +3,7 @@
 Encrypt and decrypt strings, JSON, and .env-style key=value content right in your browser. Built with React and CryptoJS for quick, no-backend cryptography workflows.
 
 ### Try it now
-- Live demo: [Open in StackBlitz ⚡️](https://stackblitz.com/~/github.com/max9159/cryptojs-web-encryptor)
+- Live demo: [Open in StackBlitz ⚡️](https://cryptojs-aes-encrypt-decrypt-xkusu4my.stackblitz.io/)
 
 ### Features
 - AES encryption/decryption of single strings
