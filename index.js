@@ -324,7 +324,7 @@ class App extends Component {
         <div className="grid-2">
           {/* Encrypt section */}
           <div className="card">
-            <h1>Encrypt Single String</h1>
+            <h1>🔒Encrypt Single String</h1>
             <div className="form-group">
               <input
                 className="form-control"
@@ -368,7 +368,7 @@ class App extends Component {
 
           {/* Decrypt section */}
           <div className="card">
-            <h1>Decrypt Single String</h1>
+            <h1>🔓Decrypt Single String</h1>
             <div className="form-group">
               <input
                 className="form-control"
@@ -413,7 +413,7 @@ class App extends Component {
 
         {/* Decrypt JSON section */}
         <div className="card">
-          <h1>Decrypt JSON</h1>
+          <h1>🔓Decrypt JSON</h1>
           <div className="form-group">
             <input
               className="form-control"
@@ -458,7 +458,7 @@ class App extends Component {
         {/* Encrypt/Decrypt key-value Content section */}
         <div className="grid-2">
           <div className="card">
-            <h1>Encrypt key-value Content</h1>
+            <h1>🔒Encrypt key-value Content</h1>
             <div className="form-group">
               <input
                 className="form-control"
@@ -501,7 +501,7 @@ class App extends Component {
           </div>
 
           <div className="card">
-            <h1>Decrypt key-value Content</h1>
+            <h1>🔓Decrypt key-value Content</h1>
             <div className="form-group">
               <input
                 className="form-control"
