@@ -410,51 +410,6 @@ class App extends Component {
             </div>
           </div>
         </div>
-
-        {/* Decrypt JSON section */}
-        <div className="card">
-          <h1>🔓Decrypt JSON</h1>
-          <div className="form-group">
-            <input
-              className="form-control"
-              value={this.state.jsonDecryptKey}
-              onChange={this.handleJsonDecryptKeyChange}
-              style={{ width: '40%', height: 40 }}
-              placeholder="Decryption Key"
-            />
-            <textarea
-              className="form-control"
-              value={this.state.jsonInput}
-              onChange={this.handleJsonInputChange}
-              style={{ width: '80%', height: 100 }}
-              placeholder="Paste Encrypted JSON Here"
-            />
-          </div>
-          <div className="output-card">
-            <button
-              className="copy-btn"
-              aria-label="Copy JSON output"
-              onClick={() =>
-                this.copyToClipboard(this.state.decryptedJson, 'jsonOut')
-              }
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
-              </svg>
-            </button>
-            <div
-              className={
-                'copy-feedback' + (this.state.copied.jsonOut ? ' show' : '')
-              }
-            >
-              Copied
-            </div>
-            <pre className="output">
-              <code>{this.state.decryptedJson}</code>
-            </pre>
-          </div>
-        </div>
-
         {/* Encrypt/Decrypt key-value Content section */}
         <div className="grid-2">
           <div className="card">
@@ -541,6 +496,50 @@ class App extends Component {
                 <code>{this.state.kvDecryptedOutput}</code>
               </pre>
             </div>
+          </div>
+        </div>
+        
+        {/* Decrypt JSON section */}
+        <div className="card">
+          <h1>🔓Decrypt JSON</h1>
+          <div className="form-group">
+            <input
+              className="form-control"
+              value={this.state.jsonDecryptKey}
+              onChange={this.handleJsonDecryptKeyChange}
+              style={{ width: '40%', height: 40 }}
+              placeholder="Decryption Key"
+            />
+            <textarea
+              className="form-control"
+              value={this.state.jsonInput}
+              onChange={this.handleJsonInputChange}
+              style={{ width: '80%', height: 100 }}
+              placeholder="Paste Encrypted JSON Here"
+            />
+          </div>
+          <div className="output-card">
+            <button
+              className="copy-btn"
+              aria-label="Copy JSON output"
+              onClick={() =>
+                this.copyToClipboard(this.state.decryptedJson, 'jsonOut')
+              }
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+              </svg>
+            </button>
+            <div
+              className={
+                'copy-feedback' + (this.state.copied.jsonOut ? ' show' : '')
+              }
+            >
+              Copied
+            </div>
+            <pre className="output">
+              <code>{this.state.decryptedJson}</code>
+            </pre>
           </div>
         </div>
       </div>
